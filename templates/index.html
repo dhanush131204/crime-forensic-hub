@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home | SENTINEL FORENSIC HUB</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+
+<body>
+    <!-- Alert Container for Flash Messages -->
+    <div class="alert-container"
+        style="position: fixed; top: 100px; right: 20px; z-index: 2000; width: auto; max-width: 350px;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ 'success' if category == 'success' else 'error' }} animate-in">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <nav class="glass-nav">
+        <div class="nav-logo">SENTINEL FORENSIC HUB</div>
+        <div class="nav-links">
+            <a href="javascript:void(0)" onclick="openVerifier('register')">JOIN AS VERIFIER</a>
+        </div>
+    </nav>
+
+    <main class="hero-wrapper">
+        <div class="hero-content">
+            <div class="hero-tag">Active Defense System</div>
+            <h1 class="hero-title">
+                The Ultimate Shield for <br>
+                <span style="color: var(--accent-primary);">Forensic Data</span> Integrity
+            </h1>
+            <p class="hero-subtitle">
+                Protecting criminal records using next-gen DNA encryption and multi-layered honey deception security. 
+                Robust. Deceptive. Unbreakable.
+            </p>
+
+            <div class="hero-actions">
+                <a href="javascript:void(0)" onclick="openAdmin()" class="btn-premium"
+                    style="width: auto; padding: 1rem 2.5rem;">Admin Login</a>
+                <a href="javascript:void(0)" onclick="openVerifier('login')" class="btn-outline">Verifier Portal</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- --- MODAL BACKDROP (SHARED) --- -->
+    <div id="modal-overlay" class="modal-overlay" onclick="closeAuth()"></div>
+
+    <!-- --- 🔐 SECURE ADMIN TERMINAL (DARK) --- -->
+    <div id="admin-card" class="auth-modal-card admin-theme">
+        <button class="modal-close" onclick="closeAuth()">&times;</button>
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div class="terminal-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+            </div>
+            <h2 style="color: #fff; font-size: 1.4rem; letter-spacing: 1px; font-weight: 800;">ADMIN CONSOLE</h2>
+            <p style="color: rgba(255,255,255,0.6); font-size: 0.8rem; margin-top: 5px;">Root access verification
+                required.</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('login_admin') }}">
+            <div class="input-group">
+                <label class="dark-label">LOGON ID</label>
+                <input type="text" name="username" class="modal-input dark-input" placeholder="Admin username" required>
+            </div>
+            <div class="input-group">
+                <label class="dark-label">PASSWORD</label>
+                <input type="password" name="password" class="modal-input dark-input" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn-modal" style="background: #00f2ff; color: #000;" onclick="handleLogin(this)">
+                <span class="loader"></span>
+                <span class="btn-text">AUTHORIZE ACCESS</span>
+            </button>
+        </form>
+    </div>
+
+    <!-- --- 🏢 VERIFIER ACCESS PORTAL (LIGHT) --- -->
+    <div id="verifier-card" class="auth-modal-card">
+        <button class="modal-close" onclick="closeAuth()">&times;</button>
+
+        <div id="v-login-flow">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h2 style="color: #333; font-size: 1.5rem; font-weight: 700;">Verifier Login</h2>
+                <p style="color: #666; font-size: 0.85rem; margin-top: 5px;">Access criminal records for secure
+                    verification.</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('login_verifier') }}">
+                <div class="input-group">
+                    <label class="light-label">EMAIL ADDRESS</label>
+                    <input type="text" name="username" class="modal-input" placeholder="e.g. inspector@police.gov"
+                        required>
+                </div>
+                <div class="input-group">
+                    <label class="light-label">PASSWORD</label>
+                    <input type="password" name="password" class="modal-input" placeholder="••••••••" required>
+                </div>
+
+                <!-- BIOMETRIC VERIFICATION -->
+                <div class="biometric-box" style="margin-top: 1rem; background: #eef2f7; padding: 12px; border-radius: 10px; border: 1px solid #d1d9e6;">
+                    <label class="light-label" style="display:block; margin-bottom: 8px; font-weight: 700;">BIOMETRIC AUTHENTICATION</label>
+                    <div id="login-camera-box" style="width: 100%; height: 160px; background: #000; border-radius: 8px; overflow: hidden;">
+                        <video id="login-video" style="width: 100%; height: 100%; object-fit: cover;" autoplay playsinline></video>
+                    </div>
+                    <button type="button" class="btn-outline" style="width: 100%; margin-top: 8px; padding: 6px; font-size: 0.8rem; color: #333; border-color: #333;" onclick="capturePhoto('login')">VERIFY IDENTITY (LIVE SELFIE)</button>
+                    <input type="hidden" name="login_photo_base64" id="login-photo-data" required>
+                    <div id="login-preview-status" style="font-size: 0.7rem; color: #28a745; margin-top: 5px; display:none;">✓ Selfie Staged for Verification</div>
+                </div>
+
+                <button type="submit" class="btn-modal" onclick="handleLogin(this)">
+                    <span class="loader"></span>
+                    <span class="btn-text">SIGN IN TO PORTAL</span>
+                </button>
+            </form>
+
+            <p style="text-align: center; margin-top: 1.5rem; font-size: 0.85rem; color: #666;">
+                New verifier? <a href="javascript:void(0)" onclick="setVFlow('register')"
+                    style="color: var(--accent-primary); font-weight: 600;">Create an account</a>
+            </p>
+        </div>
+
+        <div id="v-register-flow" style="display: none;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h2 style="color: #333; font-size: 1.5rem; font-weight: 700;">Registration</h2>
+                <p style="color: #666; font-size: 0.85rem; margin-top: 5px;">Register your credentials for forensic
+                    verification.</p>
+            </div>
+
+            <form action="{{ url_for('register_verifier') }}" method="POST">
+                <div class="input-group" style="margin-bottom: 1rem;">
+                    <label class="light-label">FULL NAME</label>
+                    <input type="text" name="username" class="modal-input" placeholder="e.g. Insp. Aryan Sharma"
+                        required style="padding: 0.75rem;">
+                </div>
+                <div class="input-group" style="margin-bottom: 1rem;">
+                    <label class="light-label">EMAIL ADDRESS</label>
+                    <input type="email" name="email" class="modal-input" placeholder="e.g. inspector@police.gov"
+                        required style="padding: 0.75rem;">
+                </div>
+                <div class="input-group" style="margin-bottom: 1rem;">
+                    <label class="light-label">MOBILE NUMBER (FOR SECRET KEYS)</label>
+                    <input type="tel" name="mobile" class="modal-input" placeholder="e.g. +91 9876543210" required style="padding: 0.75rem;">
+                </div>
+                <div class="input-group" style="margin-bottom: 1rem;">
+                    <label class="light-label">CREATE PASSWORD</label>
+                    <input type="password" name="password" class="modal-input" placeholder="••••••••" required style="padding: 0.75rem;">
+                </div>
+                <div class="input-group" style="margin-bottom: 1rem;">
+                    <label class="light-label">CONFIRM PASSWORD</label>
+                    <input type="password" name="confirm" class="modal-input" placeholder="••••••••" required style="padding: 0.75rem;">
+                </div>
+
+                <!-- BIOMETRIC ENROLLMENT -->
+                <div class="biometric-box" style="margin-top: 1.5rem; background: #f8f9fa; padding: 15px; border-radius: 12px; border: 1px dashed #ced4da;">
+                    <label class="light-label" style="display:block; margin-bottom: 10px; color: var(--accent-primary);">BIOMETRIC IDENTITY ENROLLMENT</label>
+                    <div id="reg-camera-box" style="width: 100%; height: 200px; background: #000; border-radius: 8px; overflow: hidden; position: relative;">
+                        <video id="reg-video" style="width: 100%; height: 100%; object-fit: cover;" autoplay playsinline></video>
+                        <div id="reg-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 2px solid rgba(0,242,255,0.3); pointer-events: none;"></div>
+                    </div>
+                    <button type="button" class="btn-outline" style="width: 100%; margin-top: 10px; padding: 8px; color: #333; border-color: #333;" onclick="capturePhoto('reg')">CAPTURE OFFICIAL PHOTO</button>
+                    <input type="hidden" name="profile_photo_base64" id="reg-photo-data" required>
+                    <div id="reg-preview-status" style="font-size: 0.75rem; color: #28a745; margin-top: 5px; display:none;">✓ Identity Captured Successfully</div>
+                </div>
+
+                <div style="margin-top: 1.5rem; display: flex; align-items: flex-start; gap: 10px;">
+                    <input type="checkbox" id="legal-check" required style="margin-top: 4px;">
+                    <label for="legal-check" style="font-size: 0.75rem; color: #666; line-height: 1.4;">
+                        I agree to the <strong>Secure Data Handling Protocol</strong> and understand that all interactions are logged for forensic accountability.
+                    </label>
+                </div>
+                <button type="submit" class="btn-modal" style="margin-top: 1rem; padding: 0.85rem;" onclick="handleLogin(this)">
+                    <span class="loader"></span>
+                    <span class="btn-text">AUTHORIZE ACCOUNT CREATION</span>
+                </button>
+            </form>
+
+            <p style="text-align: center; margin-top: 1.5rem; font-size: 0.85rem; color: #666;">
+                Already have credentials? <a href="javascript:void(0)" onclick="setVFlow('login')"
+                    style="color: var(--accent-primary); font-weight: 600;">Sign in here</a>
+            </p>
+        </div>
+    </div>
+
+    <style>
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(12px);
+            z-index: 1500;
+            display: none;
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .auth-modal-card {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 95%;
+            max-width: 420px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border-radius: 20px;
+            padding: 2rem 1.5rem;
+            z-index: 1501;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+            display: none;
+            opacity: 0;
+            transition: 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+
+        .auth-modal-card::-webkit-scrollbar {
+            display: none; /* Hide scrollbar for Chrome, Safari and Opera */
+        }
+
+        .modal-overlay.active,
+        .auth-modal-card.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .auth-modal-card.active {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* Themes */
+        .auth-modal-card {
+            background: #fff;
+        }
+
+        .admin-theme {
+            background: linear-gradient(145deg, #0a0f18, #161e2b);
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 0 40px rgba(0, 242, 255, 0.05);
+        }
+
+        .terminal-icon {
+            display: inline-flex;
+            padding: 10px;
+            background: rgba(0, 242, 255, 0.1);
+            border-radius: 10px;
+            color: #00f2ff;
+            margin-bottom: 1rem;
+        }
+
+        .dark-label {
+            color: #888;
+            font-weight: 700;
+            font-size: 0.65rem;
+            letter-spacing: 1px;
+        }
+
+        .light-label {
+            color: #555;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 0.9rem;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            margin-top: 6px;
+            font-size: 0.95rem;
+            background: #fff;
+            color: #333;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        /* Ensure verifier inputs are light with dark text */
+        #verifier-card .modal-input {
+            background: #fdfdfd;
+            border-color: #e0e0e0;
+            color: #222;
+        }
+
+        #verifier-card .modal-input:focus {
+            border-color: var(--accent-primary);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(0, 242, 255, 0.1);
+        }
+
+        .dark-input {
+            background: #1a1a1a;
+            border-color: #333;
+            color: #fff;
+        }
+
+        .dark-input:focus {
+            border-color: #00f2ff;
+            background: #222;
+        }
+
+        /* Admin Console inputs must stay dark */
+        #admin-card .modal-input.dark-input {
+            background: #111;
+            color: #00f2ff;
+            border-color: #333;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .btn-modal {
+            width: 100%;
+            background: var(--accent-primary);
+            color: #fff;
+            border: none;
+            padding: 1rem;
+            border-radius: 50px; /* Circular pill shape */
+            font-weight: 700;
+            margin-top: 1.5rem;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-modal:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .loader {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0,0,0,0.1);
+            border-radius: 50%;
+            border-top: 3px solid #000;
+            border-right: 3px solid transparent;
+            animation: spin 0.8s linear infinite;
+            filter: drop-shadow(0 0 2px rgba(0,0,0,0.2));
+        }
+
+        /* White loader for verifier buttons */
+        #verifier-card .loader {
+            border-top-color: #fff;
+            border-bottom-color: transparent;
+            border-left-color: rgba(255,255,255,0.2);
+            border-right-color: transparent;
+        }
+
+        .btn-modal.loading {
+            animation: pulse-glow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 242, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0); }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(128, 128, 128, 0.15);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            transition: 0.3s;
+            line-height: 0;
+            padding-bottom: 4px; /* Centering the times symbol vertically */
+        }
+
+        .modal-close:hover {
+            background: rgba(244, 63, 94, 0.2);
+            color: #f43f5e;
+            transform: rotate(90deg);
+        }
+    </style>
+
+    <script>
+        function handleLogin(btn) {
+            const form = btn.closest('form');
+            if (form && form.checkValidity()) {
+                const loader = btn.querySelector('.loader');
+                const btnText = btn.querySelector('.btn-text');
+                
+                // Visual feedback
+                if (loader) loader.style.display = 'inline-block';
+                if (btnText) {
+                    btnText.innerText = 'AUTHORIZING...';
+                    btnText.style.opacity = '0.7';
+                }
+                
+                // Add loading animation class
+                btn.classList.add('loading');
+                
+                // Prevent multiple clicks while allowing form submission
+                btn.style.pointerEvents = 'none';
+                btn.style.opacity = '0.8';
+            }
+        }
+
+        // --- WEBCAM LOGIC ---
+        let currentStream = null;
+
+        async function startCamera(videoId) {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const video = document.getElementById(videoId);
+                video.srcObject = stream;
+                currentStream = stream;
+            } catch (err) {
+                console.error("Camera access denied:", err);
+                alert("Camera access is required for Biometric Verification. Please enable permissions.");
+            }
+        }
+
+        function capturePhoto(type) {
+            const video = document.getElementById(type + '-video');
+            const canvas = document.createElement('canvas');
+            canvas.width = 640;
+            canvas.height = 480;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const dataURL = canvas.toDataURL('image/jpeg');
+            document.getElementById(type + '-photo-data').value = dataURL;
+            document.getElementById(type + '-preview-status').style.display = 'block';
+            
+            // Add visual feedback
+            const box = document.getElementById(type + '-camera-box');
+            box.style.border = '3px solid #00f2ff';
+            setTimeout(() => box.style.border = 'none', 500);
+        }
+
+        function openAdmin() {
+            closeAuth();
+            if (currentStream) currentStream.getTracks().forEach(track => track.stop());
+            document.getElementById('modal-overlay').classList.add('active');
+            document.getElementById('admin-card').classList.add('active');
+        }
+
+        function openVerifier(flow) {
+            closeAuth();
+            document.getElementById('modal-overlay').classList.add('active');
+            document.getElementById('verifier-card').classList.add('active');
+            setVFlow(flow);
+            
+            // Start camera based on flow
+            const videoId = (flow === 'login') ? 'login-video' : 'reg-video';
+            startCamera(videoId);
+        }
+
+        function closeAuth() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+            document.getElementById('modal-overlay').classList.remove('active');
+            document.getElementById('admin-card').classList.remove('active');
+            document.getElementById('verifier-card').classList.remove('active');
+        }
+
+        function setVFlow(flow) {
+            document.getElementById('v-login-flow').style.display = (flow === 'login') ? 'block' : 'none';
+            document.getElementById('v-register-flow').style.display = (flow === 'register') ? 'block' : 'none';
+            
+            // Switch camera if user shifts between Login and Register
+            if (document.getElementById('verifier-card').classList.contains('active')) {
+                const videoId = (flow === 'login') ? 'login-video' : 'reg-video';
+                startCamera(videoId);
+            }
+        }
+
+        window.onload = () => {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('auth_error')) {
+                const role = params.get('role');
+                if (role === 'verifier') {
+                    openVerifier('login');
+                } else {
+                    openAdmin();
+                }
+            }
+
+            // Automatically hide alert messages after 5 seconds
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function (alert) {
+                setTimeout(function () {
+                    alert.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                    alert.style.opacity = '0';
+                    alert.style.transform = 'translateY(-20px)';
+                    setTimeout(function () {
+                        alert.remove();
+                    }, 600);
+                }, 5000);
+            });
+        };
+    </script>
+</body>
+
+</html>

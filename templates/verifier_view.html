@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Identity Hub | SENTINEL FORENSIC HUB</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+
+<body>
+  <nav class="glass-nav">
+    <div class="nav-logo">SENTINEL FORENSIC HUB</div>
+    <div class="nav-links">
+      <span style="color: var(--accent-primary); font-size: 0.95rem; font-weight: 700;">{{ session.get('verifier')
+        }}</span>
+      <a href="{{ url_for('logout') }}" style="color: var(--danger-primary); font-size: 0.95rem; font-weight: 700; margin-left: 1rem;">LOGOUT</a>
+    </div>
+  </nav>
+
+  <main class="hero-wrapper">
+    <div class="glass-panel auth-card" style="max-width: 550px; background: linear-gradient(145deg, rgba(11, 17, 26, 0.95), rgba(20, 30, 41, 0.98)); border: 1px solid rgba(0, 242, 255, 0.2); box-shadow: 0 40px 100px rgba(0,0,0,0.8);">
+      <div style="text-align: center; margin-bottom: 2rem;">
+        <h2 class="title-cyan">ACCESS TERMINAL</h2>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">Input the unique access key to view records.</p>
+      </div>
+
+      <div class="alert-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ 'success' if category == 'success' else 'error' }}">
+          {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+      </div>
+
+      <form method="post" action="{{ url_for('verifier_retrieve') }}">
+        <div class="input-group">
+          <label class="input-label">Authorization Key (Security Key)</label>
+          <input type="text" name="key" class="styled-input" placeholder="e.g. 550e8400-e29b-41d4-a716-446655440000"
+            required />
+        </div>
+
+        <button type="submit" class="btn-premium">ACCESS RECORDS</button>
+      </form>
+
+      <div
+        style="margin-top: 1.5rem; padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 8px; border: 1px solid var(--glass-border);">
+        <p style="font-size: 0.7rem; color: var(--text-muted); margin: 0; line-height: 1.4;">
+          <strong style="color: var(--warning-primary);">SECURITY ADVISORY:</strong>
+          Incorrect keys will trigger security alerts. All unauthorized access attempts are logged with IP &
+          Geolocation traces.
+        </p>
+      </div>
+    </div>
+  </main>
+</body>
+
+</html>
