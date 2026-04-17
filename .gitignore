@@ -29,10 +29,10 @@ ENV/
 # Environment Variables (SENSITIVE)
 .env
 
-# Databases (SENSITIVE)
-database/
-*.db
-*.sqlite3
+# Databases (Allowing for project demonstration)
+# database/
+# *.db
+# *.sqlite3
 
 # Static / Uploaded Content (User Data)
 static/uploads/*
