@@ -86,6 +86,18 @@ def _get_table_count(db_path, table_name):
 
 
 def choose_db_path():
+    # Priority 1: Cloud Persistence (Render/Railway Persistent Disk)
+    # Recommended value: /var/data/records.db
+    env_path = os.getenv("PERSISTENT_DATABASE_URL")
+    if env_path:
+        p_path = Path(env_path)
+        try:
+            # Ensure the directory for the persistent DB exists
+            p_path.parent.mkdir(parents=True, exist_ok=True)
+            return p_path
+        except Exception as e:
+            print(f"Forensic Alert: Could not create persistent directory: {e}")
+
     primary_db = DB_DIR / "records.db"
     primary_count = _get_table_count(primary_db, "criminals")
     legacy_count = _get_table_count(LEGACY_DB_PATH, "criminals")

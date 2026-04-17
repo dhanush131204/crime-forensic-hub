@@ -35,10 +35,10 @@ ENV/
 # *.sqlite3
 
 # Static / Uploaded Content (User Data)
-static/uploads/*
-static/tiles/*
-static/honey_data/*
-static/records/*
+#static/uploads/*
+#static/tiles/*
+#static/honey_data/*
+#static/records/*
 
 # Project Backup / Redundant Folders
 crime/
