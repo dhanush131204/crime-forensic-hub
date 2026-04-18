@@ -148,36 +148,41 @@
     .btn-cancel:hover {
       background: rgba(255, 255, 255, 0.05);
       color: var(--text-primary);
-    /* Global Button Styles */
-    .btn-pill {
-      border-radius: 50px !important;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      transition: all 0.3s ease;
-      font-weight: 700;
-      cursor: pointer;
     }
 
-    .btn-pill:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-    }
+      /* Global Button Styles */
+      .btn-pill {
+        border-radius: 50px !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        font-weight: 700;
+        cursor: pointer;
+      }
 
-    .loader-inline {
-      display: none;
-      width: 18px;
-      height: 18px;
-      border: 3px solid rgba(0, 0, 0, 0.1);
-      border-radius: 50%;
-      border-top-color: currentColor; /* Matches text color */
-      animation: spin 1s ease-in-out infinite;
-    }
+      .btn-pill:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+      .loader-inline {
+        display: none;
+        width: 18px;
+        height: 18px;
+        border: 3px solid rgba(0, 0, 0, 0.1);
+        border-radius: 50%;
+        border-top-color: currentColor;
+        /* Matches text color */
+        animation: spin 1s ease-in-out infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
   </style>
 </head>
 
@@ -334,9 +339,11 @@
 
   <!-- Generic Confirmation Modal -->
   <div id="confirmModal" class="modal-overlay">
-    <div class="security-modal" style="border-color: var(--danger-primary); box-shadow: 0 0 50px rgba(255, 71, 87, 0.15);">
+    <div class="security-modal"
+      style="border-color: var(--danger-primary); box-shadow: 0 0 50px rgba(255, 71, 87, 0.15);">
       <div class="security-header">
-        <div class="security-icon" style="color: var(--danger-primary); border-color: var(--danger-primary); background: rgba(255, 71, 87, 0.1);">
+        <div class="security-icon"
+          style="color: var(--danger-primary); border-color: var(--danger-primary); background: rgba(255, 71, 87, 0.1);">
           <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
@@ -345,12 +352,14 @@
           </svg>
         </div>
         <h3 class="security-title" id="confirmTitle">System Action</h3>
-        <p class="security-subtitle" id="confirmMessage" style="white-space: pre-line;">Action verification required.</p>
+        <p class="security-subtitle" id="confirmMessage" style="white-space: pre-line;">Action verification required.
+        </p>
       </div>
 
       <div class="modal-actions">
         <button type="button" class="btn-cancel" onclick="closeConfirmModal()">CANCEL</button>
-        <button type="button" class="btn-verify" id="confirmBtn" style="background: var(--danger-primary); color: white; font-weight: 800;">
+        <button type="button" class="btn-verify" id="confirmBtn"
+          style="background: var(--danger-primary); color: white; font-weight: 800;">
           CONFIRM & PROCEED
         </button>
       </div>
@@ -382,7 +391,8 @@
           <input type="password" id="verifyPassword" placeholder="Enter your password" required autofocus>
         </div>
 
-        <div id="verifyError" style="color: var(--danger-primary); font-size: 0.8rem; margin-top: -0.5rem; margin-bottom: 1rem; display: none; text-align: center;">
+        <div id="verifyError"
+          style="color: var(--danger-primary); font-size: 0.8rem; margin-top: -0.5rem; margin-bottom: 1rem; display: none; text-align: center;">
           Invalid credentials. Access Denied.
         </div>
 
@@ -405,11 +415,11 @@
       document.getElementById('confirmMessage').textContent = message;
       const modal = document.getElementById('confirmModal');
       modal.classList.add('active');
-      
+
       const confirmBtn = document.getElementById('confirmBtn');
       const newBtn = confirmBtn.cloneNode(true);
       confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
-      
+
       newBtn.addEventListener('click', () => {
         onConfirm();
         closeConfirmModal();
@@ -434,9 +444,9 @@
       currentAction = null;
     }
 
-    document.getElementById('securityForm').addEventListener('submit', async function(e) {
+    document.getElementById('securityForm').addEventListener('submit', async function (e) {
       e.preventDefault();
-      
+
       const password = document.getElementById('verifyPassword').value;
       const btnText = document.getElementById('btnText');
       const btnLoading = document.getElementById('btnLoading');
@@ -498,14 +508,14 @@
     }
 
     // Automatically hide alert messages after 5 seconds
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
       const alerts = document.querySelectorAll('.alert');
-      alerts.forEach(function(alert) {
-        setTimeout(function() {
+      alerts.forEach(function (alert) {
+        setTimeout(function () {
           alert.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
           alert.style.opacity = '0';
           alert.style.transform = 'translateY(-20px)';
-          setTimeout(function() {
+          setTimeout(function () {
             alert.remove();
           }, 600); // Remove from DOM after fade finishes
         }, 5000); // 5 seconds display time

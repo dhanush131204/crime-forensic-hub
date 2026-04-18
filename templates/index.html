@@ -38,7 +38,7 @@
                 <span style="color: var(--accent-primary);">Forensic Data</span> Integrity
             </h1>
             <p class="hero-subtitle">
-                Protecting criminal records using next-gen DNA encryption and multi-layered honey deception security. 
+                Protecting criminal records using next-gen DNA encryption and multi-layered honey deception security.
                 Robust. Deceptive. Unbreakable.
             </p>
 
@@ -78,7 +78,8 @@
                 <label class="dark-label">PASSWORD</label>
                 <input type="password" name="password" class="modal-input dark-input" placeholder="••••••••" required>
             </div>
-            <button type="submit" class="btn-modal" style="background: #00f2ff; color: #000;" onclick="handleLogin(this)">
+            <button type="submit" class="btn-modal" style="background: #00f2ff; color: #000;"
+                onclick="handleLogin(this)">
                 <span class="loader"></span>
                 <span class="btn-text">AUTHORIZE ACCESS</span>
             </button>
@@ -108,14 +109,22 @@
                 </div>
 
                 <!-- BIOMETRIC VERIFICATION -->
-                <div class="biometric-box" style="margin-top: 1rem; background: #eef2f7; padding: 12px; border-radius: 10px; border: 1px solid #d1d9e6;">
-                    <label class="light-label" style="display:block; margin-bottom: 8px; font-weight: 700;">BIOMETRIC AUTHENTICATION</label>
-                    <div id="login-camera-box" style="width: 100%; height: 160px; background: #000; border-radius: 8px; overflow: hidden;">
-                        <video id="login-video" style="width: 100%; height: 100%; object-fit: cover;" autoplay playsinline></video>
+                <div class="biometric-box"
+                    style="margin-top: 1rem; background: #eef2f7; padding: 12px; border-radius: 10px; border: 1px solid #d1d9e6;">
+                    <label class="light-label" style="display:block; margin-bottom: 8px; font-weight: 700;">BIOMETRIC
+                        AUTHENTICATION</label>
+                    <div id="login-camera-box"
+                        style="width: 100%; height: 160px; background: #000; border-radius: 8px; overflow: hidden;">
+                        <video id="login-video" style="width: 100%; height: 100%; object-fit: cover;" autoplay
+                            playsinline></video>
                     </div>
-                    <button type="button" class="btn-outline" style="width: 100%; margin-top: 8px; padding: 6px; font-size: 0.8rem; color: #333; border-color: #333;" onclick="capturePhoto('login')">VERIFY IDENTITY (LIVE SELFIE)</button>
+                    <button type="button" class="btn-outline"
+                        style="width: 100%; margin-top: 8px; padding: 6px; font-size: 0.8rem; color: #333; border-color: #333;"
+                        onclick="capturePhoto('login')">VERIFY IDENTITY (LIVE SELFIE)</button>
                     <input type="hidden" name="login_photo_base64" id="login-photo-data" required>
-                    <div id="login-preview-status" style="font-size: 0.7rem; color: #28a745; margin-top: 5px; display:none;">✓ Selfie Staged for Verification</div>
+                    <div id="login-preview-status"
+                        style="font-size: 0.7rem; color: #28a745; margin-top: 5px; display:none;">✓ Selfie Staged for
+                        Verification</div>
                 </div>
 
                 <button type="submit" class="btn-modal" onclick="handleLogin(this)">
@@ -150,36 +159,52 @@
                 </div>
                 <div class="input-group" style="margin-bottom: 1rem;">
                     <label class="light-label">MOBILE NUMBER (FOR SECRET KEYS)</label>
-                    <input type="tel" name="mobile" class="modal-input" placeholder="e.g. +91 9876543210" required style="padding: 0.75rem;">
+                    <input type="tel" name="mobile" class="modal-input" placeholder="e.g. +91 9876543210" required
+                        style="padding: 0.75rem;">
                 </div>
                 <div class="input-group" style="margin-bottom: 1rem;">
                     <label class="light-label">CREATE PASSWORD</label>
-                    <input type="password" name="password" class="modal-input" placeholder="••••••••" required style="padding: 0.75rem;">
+                    <input type="password" name="password" class="modal-input" placeholder="••••••••" required
+                        style="padding: 0.75rem;">
                 </div>
                 <div class="input-group" style="margin-bottom: 1rem;">
                     <label class="light-label">CONFIRM PASSWORD</label>
-                    <input type="password" name="confirm" class="modal-input" placeholder="••••••••" required style="padding: 0.75rem;">
+                    <input type="password" name="confirm" class="modal-input" placeholder="••••••••" required
+                        style="padding: 0.75rem;">
                 </div>
 
                 <!-- BIOMETRIC ENROLLMENT -->
-                <div class="biometric-box" style="margin-top: 1.5rem; background: #f8f9fa; padding: 15px; border-radius: 12px; border: 1px dashed #ced4da;">
-                    <label class="light-label" style="display:block; margin-bottom: 10px; color: var(--accent-primary);">BIOMETRIC IDENTITY ENROLLMENT</label>
-                    <div id="reg-camera-box" style="width: 100%; height: 200px; background: #000; border-radius: 8px; overflow: hidden; position: relative;">
-                        <video id="reg-video" style="width: 100%; height: 100%; object-fit: cover;" autoplay playsinline></video>
-                        <div id="reg-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 2px solid rgba(0,242,255,0.3); pointer-events: none;"></div>
+                <div class="biometric-box"
+                    style="margin-top: 1.5rem; background: #f8f9fa; padding: 15px; border-radius: 12px; border: 1px dashed #ced4da;">
+                    <label class="light-label"
+                        style="display:block; margin-bottom: 10px; color: var(--accent-primary);">BIOMETRIC IDENTITY
+                        ENROLLMENT</label>
+                    <div id="reg-camera-box"
+                        style="width: 100%; height: 200px; background: #000; border-radius: 8px; overflow: hidden; position: relative;">
+                        <video id="reg-video" style="width: 100%; height: 100%; object-fit: cover;" autoplay
+                            playsinline></video>
+                        <div id="reg-overlay"
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 2px solid rgba(0,242,255,0.3); pointer-events: none;">
+                        </div>
                     </div>
-                    <button type="button" class="btn-outline" style="width: 100%; margin-top: 10px; padding: 8px; color: #333; border-color: #333;" onclick="capturePhoto('reg')">CAPTURE OFFICIAL PHOTO</button>
+                    <button type="button" class="btn-outline"
+                        style="width: 100%; margin-top: 10px; padding: 8px; color: #333; border-color: #333;"
+                        onclick="capturePhoto('reg')">CAPTURE OFFICIAL PHOTO</button>
                     <input type="hidden" name="profile_photo_base64" id="reg-photo-data" required>
-                    <div id="reg-preview-status" style="font-size: 0.75rem; color: #28a745; margin-top: 5px; display:none;">✓ Identity Captured Successfully</div>
+                    <div id="reg-preview-status"
+                        style="font-size: 0.75rem; color: #28a745; margin-top: 5px; display:none;">✓ Identity Captured
+                        Successfully</div>
                 </div>
 
                 <div style="margin-top: 1.5rem; display: flex; align-items: flex-start; gap: 10px;">
                     <input type="checkbox" id="legal-check" required style="margin-top: 4px;">
                     <label for="legal-check" style="font-size: 0.75rem; color: #666; line-height: 1.4;">
-                        I agree to the <strong>Secure Data Handling Protocol</strong> and understand that all interactions are logged for forensic accountability.
+                        I agree to the <strong>Secure Data Handling Protocol</strong> and understand that all
+                        interactions are logged for forensic accountability.
                     </label>
                 </div>
-                <button type="submit" class="btn-modal" style="margin-top: 1rem; padding: 0.85rem;" onclick="handleLogin(this)">
+                <button type="submit" class="btn-modal" style="margin-top: 1rem; padding: 0.85rem;"
+                    onclick="handleLogin(this)">
                     <span class="loader"></span>
                     <span class="btn-text">AUTHORIZE ACCOUNT CREATION</span>
                 </button>
@@ -223,12 +248,15 @@
             display: none;
             opacity: 0;
             transition: 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
+            -ms-overflow-style: none;
+            /* IE and Edge */
+            scrollbar-width: none;
+            /* Firefox */
         }
 
         .auth-modal-card::-webkit-scrollbar {
-            display: none; /* Hide scrollbar for Chrome, Safari and Opera */
+            display: none;
+            /* Hide scrollbar for Chrome, Safari and Opera */
         }
 
         .modal-overlay.active,
@@ -325,7 +353,8 @@
             color: #fff;
             border: none;
             padding: 1rem;
-            border-radius: 50px; /* Circular pill shape */
+            border-radius: 50px;
+            /* Circular pill shape */
             font-weight: 700;
             margin-top: 1.5rem;
             cursor: pointer;
@@ -345,19 +374,19 @@
             display: none;
             width: 20px;
             height: 20px;
-            border: 3px solid rgba(0,0,0,0.1);
+            border: 3px solid rgba(0, 0, 0, 0.1);
             border-radius: 50%;
             border-top: 3px solid #000;
             border-right: 3px solid transparent;
             animation: spin 0.8s linear infinite;
-            filter: drop-shadow(0 0 2px rgba(0,0,0,0.2));
+            filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.2));
         }
 
         /* White loader for verifier buttons */
         #verifier-card .loader {
             border-top-color: #fff;
             border-bottom-color: transparent;
-            border-left-color: rgba(255,255,255,0.2);
+            border-left-color: rgba(255, 255, 255, 0.2);
             border-right-color: transparent;
         }
 
@@ -366,13 +395,23 @@
         }
 
         @keyframes pulse-glow {
-            0% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(0, 242, 255, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0); }
+            0% {
+                box-shadow: 0 0 0 0 rgba(0, 242, 255, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(0, 242, 255, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(0, 242, 255, 0);
+            }
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .modal-close {
@@ -392,7 +431,8 @@
             font-size: 1.6rem;
             transition: 0.3s;
             line-height: 0;
-            padding-bottom: 4px; /* Centering the times symbol vertically */
+            padding-bottom: 4px;
+            /* Centering the times symbol vertically */
         }
 
         .modal-close:hover {
@@ -408,17 +448,17 @@
             if (form && form.checkValidity()) {
                 const loader = btn.querySelector('.loader');
                 const btnText = btn.querySelector('.btn-text');
-                
+
                 // Visual feedback
                 if (loader) loader.style.display = 'inline-block';
                 if (btnText) {
                     btnText.innerText = 'AUTHORIZING...';
                     btnText.style.opacity = '0.7';
                 }
-                
+
                 // Add loading animation class
                 btn.classList.add('loading');
-                
+
                 // Prevent multiple clicks while allowing form submission
                 btn.style.pointerEvents = 'none';
                 btn.style.opacity = '0.8';
@@ -451,11 +491,11 @@
             canvas.height = 480;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
+
             const dataURL = canvas.toDataURL('image/jpeg');
             document.getElementById(type + '-photo-data').value = dataURL;
             document.getElementById(type + '-preview-status').style.display = 'block';
-            
+
             // Add visual feedback
             const box = document.getElementById(type + '-camera-box');
             box.style.border = '3px solid #00f2ff';
@@ -474,7 +514,7 @@
             document.getElementById('modal-overlay').classList.add('active');
             document.getElementById('verifier-card').classList.add('active');
             setVFlow(flow);
-            
+
             // Start camera based on flow
             const videoId = (flow === 'login') ? 'login-video' : 'reg-video';
             startCamera(videoId);
@@ -493,7 +533,7 @@
         function setVFlow(flow) {
             document.getElementById('v-login-flow').style.display = (flow === 'login') ? 'block' : 'none';
             document.getElementById('v-register-flow').style.display = (flow === 'register') ? 'block' : 'none';
-            
+
             // Switch camera if user shifts between Login and Register
             if (document.getElementById('verifier-card').classList.contains('active')) {
                 const videoId = (flow === 'login') ? 'login-video' : 'reg-video';

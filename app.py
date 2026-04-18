@@ -263,6 +263,10 @@ def init_db():
     user_cols = [row[1] for row in cur.fetchall()]
     if "email" not in user_cols:
         cur.execute("ALTER TABLE users ADD COLUMN email TEXT")
+    # Phase 1: DNA Security Migration — add username_dna column
+    if "username_dna" not in user_cols:
+        cur.execute("ALTER TABLE users ADD COLUMN username_dna TEXT")
+        print("Forensic Security: Added username_dna column for DNA-encoded identity.")
 
     # Migration for criminals: Add new columns if they don't exist
     cur.execute("PRAGMA table_info(criminals)")
@@ -282,13 +286,26 @@ def init_db():
             except sqlite3.Error as e:
                 print(f"Error adding column {col}: {e}")
 
-    # Default Admin
-    cur.execute("SELECT id FROM users WHERE role='admin'")
+    # Default Admin — credentials loaded from .env (not hardcoded)
+    _default_uname = os.getenv("DEFAULT_ADMIN_USERNAME", "admin")
+    _default_pwd   = os.getenv("DEFAULT_ADMIN_PASSWORD", "Admin123")
+    _dna_uname     = encode_to_dna(_default_uname)
+    _dna_pwd_hash  = generate_password_hash(encode_to_dna(_default_pwd))
+
+    cur.execute("SELECT id FROM users WHERE role='admin' OR role='director'")
     if not cur.fetchone():
-        cur.execute(
-            "INSERT INTO users(role, username, password_hash, created_at) VALUES (?,?,?,?)",
-            ("admin", "admin", generate_password_hash("Admin123"), get_indian_time().isoformat()),
-        )
+        try:
+            cur.execute(
+                "INSERT INTO users(role, username, username_dna, password_hash, created_at) VALUES (?,?,?,?,?)",
+                ("admin", _default_uname, _dna_uname, _dna_pwd_hash, get_indian_time().isoformat()),
+            )
+            print("Forensic Security: Default admin created with DNA-encoded credentials.")
+        except sqlite3.IntegrityError:
+            pass
+    else:
+        # Migrate existing admin: backfill username_dna if empty
+        cur.execute("UPDATE users SET username_dna = ? WHERE (role='admin' OR role='director') AND (username_dna IS NULL OR username_dna='')",
+                    (encode_to_dna(_default_uname),))
 
     conn.commit()
     conn.close()
@@ -415,22 +432,41 @@ def login_admin():
         username = request.form["username"]
         password = request.form["password"]
 
+        # Phase 1: DNA-encode the entered username to search in DB
+        dna_username = encode_to_dna(username)
+        # Phase 1: DNA-encode the entered password before hash verification
+        dna_password = encode_to_dna(password)
+
         conn = get_conn()
         cur = conn.cursor()
+        # Search by DNA-encoded username (Bio-Cryptographic Identity Check)
         cur.execute(
-            "SELECT * FROM users WHERE role='admin' AND username=?",
-            (username,),
+            "SELECT * FROM users WHERE (role='admin' OR role='director') AND username_dna=?",
+            (dna_username,),
         )
         admin = cur.fetchone()
+
+        # Fallback: legacy plain-text username check (for backward compat)
+        if not admin:
+            cur.execute(
+                "SELECT * FROM users WHERE (role='admin' OR role='director') AND username=?",
+                (username,),
+            )
+            admin = cur.fetchone()
         conn.close()
 
-        if admin and admin["password_hash"] and check_password_hash(admin["password_hash"], password):
-            session["admin"] = username
-            log_event(f"admin:{username}", "login")
-            return redirect(url_for("admin_dashboard"))
-        else:
-            flash("Invalid Admin Credentials", "error")
-            return redirect(url_for("index", auth_error=1))
+        if admin and admin["password_hash"]:
+            # Try DNA-encoded password first, then plain (legacy fallback)
+            pwd_ok = check_password_hash(admin["password_hash"], dna_password) or \
+                     check_password_hash(admin["password_hash"], password)
+            if pwd_ok:
+                session["admin"] = username
+                log_event(f"admin:{username}", "login", "DNA Bio-Authenticated")
+                return redirect(url_for("admin_dashboard"))
+
+        log_event("anonymous", "login_failed", f"Failed admin login attempt for: {username}")
+        flash("Invalid Admin Credentials", "error")
+        return redirect(url_for("index", auth_error=1))
             
     return render_template("login_admin.html")
             
@@ -444,18 +480,29 @@ def admin_verify_action():
         return jsonify({"success": False, "message": "Password is required."}), 400
         
     username = session["admin"]
+    dna_username = encode_to_dna(username)
+    dna_password = encode_to_dna(password)
+
     conn = get_conn()
     cur = conn.cursor()
-    cur.execute("SELECT password_hash FROM users WHERE role='admin' AND username=?", (username,))
+    # Search by DNA-encoded username first, then plain fallback
+    cur.execute("SELECT password_hash FROM users WHERE (role='admin' OR role='director') AND username_dna=?", (dna_username,))
     admin = cur.fetchone()
+    if not admin:
+        cur.execute("SELECT password_hash FROM users WHERE (role='admin' OR role='director') AND username=?", (username,))
+        admin = cur.fetchone()
     conn.close()
     
-    if admin and check_password_hash(admin["password_hash"], password):
-        log_event(f"admin:{username}", "security_verified", "Sensitive action authorized via popup")
-        return jsonify({"success": True})
-    else:
-        log_event(f"admin:{username}", "security_failed", "Failed authorization attempt for sensitive action")
-        return jsonify({"success": False, "message": "Invalid password. Access denied."}), 403
+    if admin:
+        # Try DNA-encoded password first, then plain (legacy fallback)
+        pwd_ok = check_password_hash(admin["password_hash"], dna_password) or \
+                 check_password_hash(admin["password_hash"], password)
+        if pwd_ok:
+            log_event(f"admin:{username}", "security_verified", "Sensitive action authorized via popup (DNA Auth)")
+            return jsonify({"success": True})
+
+    log_event(f"admin:{username}", "security_failed", "Failed authorization attempt for sensitive action")
+    return jsonify({"success": False, "message": "Invalid password. Access denied."}), 403
 
 def require_admin():
     if "admin" not in session:
@@ -477,24 +524,16 @@ def login_verifier():
         conn = get_conn()
         cur = conn.cursor()
         
-        # DNA Protection Search
-        encoded_input = encode_to_dna(username)
-        
-        # Check DNA username OR DNA email
+        # Check username OR email
         cur.execute(
-            "SELECT * FROM users WHERE (role='verifier' OR role='Verifier') AND (username=? OR email=? OR username=? OR email=?)",
-            (username, username, encoded_input, encoded_input),
+            "SELECT * FROM users WHERE (role='verifier' OR role='Verifier' OR role='investigator') AND (username=? OR email=?)",
+            (username, username),
         )
         user = cur.fetchone()
         conn.close()
 
         if user and check_password_hash(user["password_hash"], password):
-            # Resolve the Display Name (Decode from DNA if possible)
             display_name = user["username"]
-            try:
-                display_name = decode_from_dna(user["username"])
-            except Exception:
-                pass
 
             # Phase 4: Biometric Authentication
             login_photo_b64 = request.form.get("login_photo_base64")
@@ -563,11 +602,6 @@ def register_verifier():
         conn = get_conn()
         cur = conn.cursor()
         try:
-            # Phase 3: DNA DNA DNA! (Protect Name, Email, AND Mobile)
-            encoded_name = encode_to_dna(username)
-            encoded_email = encode_to_dna(email)
-            encoded_mobile = encode_to_dna(mobile)
-
             # Save the profile photo
             filename = f"{uuid.uuid4().hex}.jpg"
             save_path = PROFILES_DIR / filename
@@ -578,10 +612,10 @@ def register_verifier():
             cur.execute(
                 "INSERT INTO users(role, username, email, mobile_dna, profile_photo, password_hash, created_at) VALUES (?,?,?,?,?,?,?)",
                 (
-                    "verifier",
-                    encoded_name,
-                    encoded_email,
-                    encoded_mobile,
+                    "investigator",
+                    username,
+                    email,
+                    mobile,
                     db_photo_path,
                     generate_password_hash(password),
                     get_indian_time().isoformat(),
@@ -659,21 +693,9 @@ def admin_users():
     users = []
     for u in raw_users:
         u_dict = dict(u)
-        # Decode DNA fields for the directory
-        if u_dict['role'].lower() == 'verifier':
-            try:
-                u_dict['username_decoded'] = decode_from_dna(u_dict['username'])
-                u_dict['email_decoded'] = decode_from_dna(u_dict['email'])
-                u_dict['mobile_decoded'] = decode_from_dna(u_dict['mobile_dna']) if u_dict['mobile_dna'] else "N/A"
-            except (ValueError, Exception):
-                # Fallback for legacy records that aren't DNA-encoded
-                u_dict['username_decoded'] = u_dict['username']
-                u_dict['email_decoded'] = u_dict['email']
-                u_dict['mobile_decoded'] = "Legacy (No DNA)"
-        else:
-            u_dict['username_decoded'] = u_dict['username']
-            u_dict['email_decoded'] = u_dict['email']
-            u_dict['mobile_decoded'] = "SYSTEM"
+        u_dict['username_decoded'] = u_dict['username']
+        u_dict['email_decoded'] = u_dict['email']
+        u_dict['mobile_decoded'] = u_dict['mobile_dna'] if u_dict['mobile_dna'] else "N/A"
             
         users.append(u_dict)
     
