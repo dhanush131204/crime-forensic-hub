@@ -1551,6 +1551,159 @@ def admin_delete_record(record_id):
 
     return redirect(url_for("admin_records"))
 
+# -------------------------------------------------
+# Phase 2: Secure Admin Registration System
+# -------------------------------------------------
+import uuid
+
+@app.route("/admin/invite-officer", methods=["POST"])
+def admin_invite_officer():
+    if not require_admin():
+        return jsonify({"success": False, "message": "Unauthorized"}), 403
+        
+    token = str(uuid.uuid4())
+    created_at = get_indian_time()
+    expires_at = created_at + datetime.timedelta(minutes=30)
+    
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("INSERT INTO admin_invites (token, created_by, created_at, expires_at) VALUES (?, ?, ?, ?)",
+                (token, session.get("admin"), created_at.isoformat(), expires_at.isoformat()))
+    conn.commit()
+    conn.close()
+    
+    invite_url = url_for("register_admin", token=token, _external=True)
+    log_event(f"admin:{session.get('admin')}", "generate_invite", "Generated temporary Bureau Commission code")
+    return jsonify({"success": True, "link": invite_url})
+
+@app.route("/register/admin/<token>", methods=["GET", "POST"])
+def register_admin(token):
+    # Verify token validity
+    now = get_indian_time()
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM admin_invites WHERE token = ? AND used = 0", (token,))
+    invite = cur.fetchone()
+    
+    if not invite:
+        conn.close()
+        flash("Invalid or expired Bureau Commission link.", "error")
+        return redirect(url_for("login_admin"))
+        
+    expires_at = datetime.datetime.fromisoformat(invite["expires_at"])
+    if now > expires_at:
+        conn.close()
+        flash("This Bureau Commission link has expired (30-minute limit).", "error")
+        return redirect(url_for("login_admin"))
+        
+    if request.method == "POST":
+        # Form Data
+        name = request.form.get("name")
+        email = request.form.get("email")
+        mobile = request.form.get("mobile")
+        username = request.form.get("username")
+        password = request.form.get("password")
+        gov_id_type = request.form.get("gov_id_type")
+        gov_id_number = request.form.get("gov_id_number")
+        
+        # We assume Twilio OTP and Face selfie match were successful client-side (Phase 2 simulated step)
+        # Real deployment: these would be mathematically verified here.
+        
+        # Files
+        gov_id_file = request.files.get("gov_id_file")
+        profile_photo_data = request.form.get("profile_photo_data") # Base64 selfie
+        
+        gov_id_path = ""
+        profile_path = ""
+        
+        if gov_id_file and allowed_file(gov_id_file.filename):
+            filename = secure_filename(gov_id_file.filename)
+            save_name = f"govid_{uuid.uuid4().hex[:8]}_{filename}"
+            full_path = UPLOAD_DIR / save_name
+            gov_id_file.save(str(full_path))
+            gov_id_path = f"static/records/primary_vault/{save_name}"
+            
+        if profile_photo_data:
+            import base64
+            from io import BytesIO
+            from PIL import Image
+            img_data = base64.b64decode(profile_photo_data.split(',')[1])
+            img = Image.open(BytesIO(img_data)).convert('RGB')
+            save_name = f"selfie_{uuid.uuid4().hex[:8]}.jpg"
+            full_path = APP_PROFILES_DIR / save_name
+            img.save(str(full_path))
+            profile_path = f"static/profiles/{save_name}"
+            
+        # DNA Encoding of proposed identity
+        dna_username = encode_to_dna(username)
+        dna_pw_hash = generate_password_hash(encode_to_dna(password))
+        
+        # Insert as pending
+        try:
+            cur.execute("""
+            INSERT INTO users 
+            (role, username, username_dna, email, password_hash, created_at, status, gov_id_type, gov_id_number, gov_id_photo, profile_photo, invite_token)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            ("admin", username, dna_username, email, dna_pw_hash, now.isoformat(), 
+             "pending", gov_id_type, gov_id_number, gov_id_path, profile_path, token))
+            
+            # Invalidate token
+            cur.execute("UPDATE admin_invites SET used = 1 WHERE token = ?", (token,))
+            conn.commit()
+            
+            log_event(f"system", "admin_registered", f"New admin application submitted by {name} (pending approval)")
+            flash("Commission Application Submitted successfully. Pending Director Approval.", "success")
+            return redirect(url_for("login_admin"))
+        except sqlite3.IntegrityError:
+            flash("Username or Email already exists in the registry.", "error")
+            
+    conn.close()
+    return render_template("admin_register.html", token=token)
+
+@app.route("/admin/pending-approvals")
+def admin_pending_approvals():
+    if not require_admin():
+        return redirect(url_for("login_admin"))
+    
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM users WHERE role = 'admin' AND status = 'pending'")
+    pending = cur.fetchall()
+    conn.close()
+    
+    return render_template("admin_pending.html", pending_admins=pending)
+
+@app.route("/admin/approve-admin/<int:user_id>", methods=["POST"])
+def admin_approve_admin(user_id):
+    if not require_admin():
+        return jsonify({"success": False}), 403
+        
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("UPDATE users SET status = 'active' WHERE id = ? AND role = 'admin'", (user_id,))
+    conn.commit()
+    conn.close()
+    
+    log_event(f"admin:{session.get('admin')}", "approve_admin", f"Commissioned new Bureau Director ID: {user_id}")
+    return jsonify({"success": True})
+
+@app.route("/admin/reject-admin/<int:user_id>", methods=["POST"])
+def admin_reject_admin(user_id):
+    if not require_admin():
+        return jsonify({"success": False}), 403
+        
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM users WHERE id = ? AND role = 'admin' AND status = 'pending'", (user_id,))
+    conn.commit()
+    conn.close()
+    
+    log_event(f"admin:{session.get('admin')}", "reject_admin", f"Rejected Bureau Director applicant ID: {user_id}")
+    return jsonify({"success": True})
+
+
+
 
 # -------------------------------------------------
 # Verifier View

@@ -60,6 +60,14 @@ def generate_official_document(data, mugshot_path, output_path):
     # ── 3. Mugshot ────────────────────────────────────────────────────
     try:
         mug = Image.open(mugshot_path).convert("RGB")
+        
+        # Security recursion fix: if the fallback photo is actually an old forensic doc
+        # (dimensions 900x1100), crop the original mugshot out of it rather than
+        # drawing the whole document inside the photo box!
+        if mug.size == (900, 1100):
+            # The face photo is located at exactly (645, 115, 855, 370)
+            mug = mug.crop((photo_x, photo_y, photo_x + photo_w, photo_y + photo_h))
+            
         mug = mug.resize((photo_w, photo_h), Image.LANCZOS)
         img.paste(mug, (photo_x, photo_y))
     except Exception as e:
